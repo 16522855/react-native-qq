@@ -268,6 +268,7 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
                         .emit("QQ_Resp", map);
             }
         } else if(APIState=="userinfo") {
+            JSONObject obj = (JSONObject) (o);
             resultMap.putString("type", "QQGetUserinfoResponse");
             resultMap.putInt("errCode", SHARE_RESULT_CODE_SUCCESSFUL);
             resultMap.putString("result", obj.toString());            
