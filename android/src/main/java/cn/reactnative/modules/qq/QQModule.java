@@ -157,19 +157,7 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
             }
         });
     }
-
-    @ReactMethod
-    public void getUserinfo(final ReadableMap data, final Promise promise)
-    {
-        UiThreadUtil.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                _shareToQQ(data, 1);
-                promise.resolve(null);
-            }
-        });
-    }    
-
+    
     private void _shareToQQ(ReadableMap data, int scene) {
         this.APIState = "share";
         Bundle bundle = new Bundle();
