@@ -70,6 +70,11 @@ export function shareToQzone(data={}) {
         .then(() => waitForResponse("QQShareResponse"));
 }
 
+export function getUserinfo(data={}) {
+    return QQAPI.shareToQzone(data)
+        .then(() => waitForResponse("QQGetUserinfoResponse"));
+}
+
 export function logout(){
     QQAPI.logout()
 }

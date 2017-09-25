@@ -21,6 +21,7 @@ import com.tencent.connect.common.Constants;
 import com.tencent.connect.share.QQShare;
 import com.tencent.tauth.IUiListener;
 import com.tencent.tauth.Tencent;
+import com.tencent.connect.UserInfo; 
 import com.tencent.tauth.UiError;
 
 import org.json.JSONObject;
@@ -36,7 +37,7 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
     private String appId;
     private Tencent api;
     private final static String INVOKE_FAILED = "QQ API invoke returns false.";
-    private boolean isLogin;
+    private String APIState;
 
     private static final String RCTQQShareTypeNews = "news";
     private static final String RCTQQShareTypeImage = "image";
@@ -117,7 +118,7 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
 
     @ReactMethod
     public void login(String scopes, Promise promise){
-        this.isLogin = true;
+        this.APIState = "login";
         if (!api.isSessionValid()){
             api.login(getCurrentActivity(), scopes == null ? "get_simple_userinfo" : scopes, this);
             promise.resolve(null);
@@ -125,6 +126,14 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
             promise.reject(INVOKE_FAILED);
         }
     }
+
+    @ReactMethod
+    public void getUserinfo(String scopes, Promise promise){
+        this.APIState = "userinfo";
+        UserInfo userInfo = new UserInfo(MainActivity.this, api.getQQToken());  
+        userInfo.getUserInfo(this);
+        promise.resolve(null);
+    }    
 
     @ReactMethod
     public void shareToQQ(final ReadableMap data, final Promise promise){
@@ -149,8 +158,20 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
         });
     }
 
+    @ReactMethod
+    public void getUserinfo(final ReadableMap data, final Promise promise)
+    {
+        UiThreadUtil.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                _shareToQQ(data, 1);
+                promise.resolve(null);
+            }
+        });
+    }    
+
     private void _shareToQQ(ReadableMap data, int scene) {
-        this.isLogin = false;
+        this.APIState = "share";
         Bundle bundle = new Bundle();
         if (data.hasKey(RCTQQShareTitle)){
             bundle.putString(QQShare.SHARE_TO_QQ_TITLE, data.getString(RCTQQShareTitle));
@@ -202,7 +223,17 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
     }
 
     private String _getType() {
-        return (this.isLogin?"QQAuthorizeResponse":"QQShareResponse");
+        switch(this.APIState)
+        {
+            case "login":
+            return "QQAuthorizeResponse";
+            case "share":
+            return "QQShareResponse";
+            case "userinfo":
+            return "QQGetUserinfoResponse";
+            default:
+            return "";
+        }
     }
 
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
@@ -218,7 +249,7 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
 
         WritableMap resultMap = Arguments.createMap();
 
-        if (isLogin) {
+        if (APIState=="login") {
             resultMap.putString("type", "QQAuthorizeResponse");
             try {
                 JSONObject obj = (JSONObject) (o);
@@ -236,7 +267,12 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
                         .getJSModule(RCTNativeAppEventEmitter.class)
                         .emit("QQ_Resp", map);
             }
-        } else {
+        } else if(APIState=="userinfo") {
+            resultMap.putString("type", "QQGetUserinfoResponse");
+            resultMap.putInt("errCode", SHARE_RESULT_CODE_SUCCESSFUL);
+            resultMap.putString("result", obj.toString());            
+        }
+        else {
             resultMap.putString("type", "QQShareResponse");
             resultMap.putInt("errCode", SHARE_RESULT_CODE_SUCCESSFUL);
             resultMap.putString("message", "Share successfully.");
