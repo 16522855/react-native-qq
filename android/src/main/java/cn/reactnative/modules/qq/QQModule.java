@@ -130,7 +130,7 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
     @ReactMethod
     public void getUserinfo(String scopes, Promise promise){
         this.APIState = "userinfo";
-        UserInfo userInfo = new UserInfo(MainActivity.this, api.getQQToken());  
+        UserInfo userInfo = new UserInfo(getCurrentActivity(), api.getQQToken());  
         userInfo.getUserInfo(this);
         promise.resolve(null);
     }    
