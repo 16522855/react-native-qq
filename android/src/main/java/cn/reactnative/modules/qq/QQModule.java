@@ -241,6 +241,9 @@ public class QQModule extends ReactContextBaseJavaModule implements IUiListener,
             resultMap.putString("type", "QQAuthorizeResponse");
             try {
                 JSONObject obj = (JSONObject) (o);
+                api.setOpenId(obj.getString(Constants.PARAM_OPEN_ID));
+                api.setAccessToken(obj.getString(Constants.PARAM_ACCESS_TOKEN),obj.getString(Constants.PARAM_EXPIRES_IN));
+
                 resultMap.putInt("errCode", 0);
                 resultMap.putString("openid", obj.getString(Constants.PARAM_OPEN_ID));
                 resultMap.putString("access_token", obj.getString(Constants.PARAM_ACCESS_TOKEN));

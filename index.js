@@ -71,7 +71,7 @@ export function shareToQzone(data={}) {
 }
 
 export function getUserinfo(data={}) {
-    return QQAPI.shareToQzone(data)
+    return QQAPI.getUserinfo(data)
         .then(() => waitForResponse("QQGetUserinfoResponse"));
 }
 
